@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Settings, Vibrate, Volume2, Play } from 'lucide-react';
+import { Settings, Vibrate, Volume2, Play, Info } from 'lucide-react';
 
 const VIBRATION_PATTERNS = {
   curto: [200],
@@ -31,21 +31,21 @@ export default function NotificationSettings() {
   }, []);
 
   const handleSaveAndTest = async () => {
-    if (isTesting) return; // Evita que você clique 10x rápido e trave o celular
+    if (isTesting) return;
     setIsTesting(true);
 
     localStorage.setItem('pref_vibration', vibration);
     localStorage.setItem('pref_sound', sound);
 
-    // 1. Testa a Vibração (Chamada direta, sem invenções para o Android não bloquear)
+    // 1. Testa a Vibração
     if ('vibrate' in navigator) {
         navigator.vibrate(VIBRATION_PATTERNS[vibration]);
     }
 
-    // 2. Testa o Som com Gerenciamento de Memória
+    // 2. Testa o Som
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContext(); // Abre o canal
+      const ctx = new AudioContext(); 
       
       if (ctx.state === 'suspended') {
         await ctx.resume();
@@ -67,12 +67,11 @@ export default function NotificationSettings() {
       osc.start();
       osc.stop(ctx.currentTime + soundProfile.duration);
 
-      // CORREÇÃO MESTRA: Fecha o canal de áudio assim que acabar o som!
       setTimeout(() => {
         if (ctx.state !== 'closed') {
            ctx.close();
         }
-        setIsTesting(false); // Libera o botão
+        setIsTesting(false);
       }, soundProfile.duration * 1000 + 100);
 
     } catch (e) {
@@ -85,7 +84,7 @@ export default function NotificationSettings() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center gap-2 w-full mb-6 bg-slate-900/60 border border-slate-700/50 hover:bg-slate-800/80 text-slate-300 rounded-2xl p-4 transition-all"
+        className="flex items-center justify-center gap-2 w-full mb-6 bg-slate-900/60 border border-slate-700/50 hover:bg-slate-800/80 text-slate-300 rounded-2xl p-4 transition-all shadow-inner"
       >
         <Settings size={18} /> Personalizar Alertas (Som e Vibração)
       </button>
@@ -117,6 +116,14 @@ export default function NotificationSettings() {
                 {key.charAt(0).toUpperCase() + key.slice(1)}
               </button>
             ))}
+          </div>
+          
+          {/* Nova Observação de Vibração */}
+          <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2">
+            <Info size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-amber-200/80 leading-relaxed">
+              <strong className="text-amber-400">Nota:</strong> Se o aparelho não vibrar, verifique se ele <strong>não está no Modo Economia de Bateria</strong> e se a <strong>Vibração do Sistema / Resposta Tátil</strong> está ativada nas configurações do celular.
+            </p>
           </div>
         </div>
 
