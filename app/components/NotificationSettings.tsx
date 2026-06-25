@@ -21,6 +21,7 @@ export default function NotificationSettings() {
   const [isOpen, setIsOpen] = useState(false);
   const [vibration, setVibration] = useState<keyof typeof VIBRATION_PATTERNS>('duplo');
   const [sound, setSound] = useState<keyof typeof SOUND_FREQUENCIES>('alerta');
+  const [isTesting, setIsTesting] = useState(false);
 
   useEffect(() => {
     const savedVib = localStorage.getItem('pref_vibration') as keyof typeof VIBRATION_PATTERNS;
@@ -30,32 +31,28 @@ export default function NotificationSettings() {
   }, []);
 
   const handleSaveAndTest = async () => {
+    if (isTesting) return; // Evita que você clique 10x rápido e trave o celular
+    setIsTesting(true);
+
     localStorage.setItem('pref_vibration', vibration);
     localStorage.setItem('pref_sound', sound);
 
-    // 1. Testa a Vibração (Desperta a API com um delay mínimo)
+    // 1. Testa a Vibração (Chamada direta, sem invenções para o Android não bloquear)
     if ('vibrate' in navigator) {
-      navigator.vibrate(0); // Para qualquer vibração atual
-      setTimeout(() => {
         navigator.vibrate(VIBRATION_PATTERNS[vibration]);
-      }, 50);
-    } else {
-      alert("Seu navegador atual bloqueia a vibração.");
     }
 
-    // 2. Testa o Som (Forçando o desbloqueio do Android)
+    // 2. Testa o Som com Gerenciamento de Memória
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContext();
+      const ctx = new AudioContext(); // Abre o canal
       
-      // Essencial para navegadores mobile: acorda o contexto de áudio
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      
       const soundProfile = SOUND_FREQUENCIES[sound];
       
       osc.type = soundProfile.type as OscillatorType;
@@ -64,14 +61,23 @@ export default function NotificationSettings() {
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      // Volume aumentado de 0.1 para 0.8 para ficar bem audível no celular
       gain.gain.setValueAtTime(0.8, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + soundProfile.duration);
       
       osc.start();
       osc.stop(ctx.currentTime + soundProfile.duration);
+
+      // CORREÇÃO MESTRA: Fecha o canal de áudio assim que acabar o som!
+      setTimeout(() => {
+        if (ctx.state !== 'closed') {
+           ctx.close();
+        }
+        setIsTesting(false); // Libera o botão
+      }, soundProfile.duration * 1000 + 100);
+
     } catch (e) {
-      console.error("Áudio bloqueado", e);
+      console.error("Erro ao tocar áudio", e);
+      setIsTesting(false);
     }
   };
 
@@ -138,9 +144,10 @@ export default function NotificationSettings() {
         <div className="flex gap-3 pt-2">
           <button 
             onClick={handleSaveAndTest}
-            className="flex-1 bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-400 hover:to-orange-300 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-pink-500/20 active:scale-95 transition-all"
+            disabled={isTesting}
+            className={`flex-1 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg transition-all ${isTesting ? 'bg-slate-600 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-400 hover:to-orange-300 shadow-pink-500/20 active:scale-95'}`}
           >
-            <Play size={16} /> Salvar e Testar
+            <Play size={16} /> {isTesting ? 'Testando...' : 'Salvar e Testar'}
           </button>
           <button 
             onClick={() => setIsOpen(false)}
