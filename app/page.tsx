@@ -1,65 +1,97 @@
-import Image from "next/image";
+// app/page.tsx
+import Link from 'next/link';
+import { getDashboardData } from './actions';
+import { Briefcase, User, Calendar, CheckSquare, Sparkles } from 'lucide-react';
+import PushNotification from './components/PushNotification';
+import NotificationSettings from './components/NotificationSettings';
+import DemandForm from './components/DemandForm';
+import { TaskCard, MeetingCard } from './components/DemandCards';
+import FilterBar from './components/FilterBar';
 
-export default function Home() {
+export default async function DashboardPage({ searchParams }: { searchParams: { q?: string, cat?: string } }) {
+  const { tasks, meetings } = await getDashboardData();
+
+  // Lógica de Filtragem Baseada na URL
+  const query = searchParams.q?.toLowerCase() || '';
+  const category = searchParams.cat || 'all';
+
+  const filteredTasks = tasks.filter(t => {
+    const matchesSearch = t.title.toLowerCase().includes(query) || (t.description?.toLowerCase().includes(query) ?? false);
+    const matchesCat = category === 'all' || t.category === category;
+    return matchesSearch && matchesCat;
+  });
+
+  const filteredMeetings = meetings.filter(m => {
+    const matchesSearch = m.title.toLowerCase().includes(query) || (m.description?.toLowerCase().includes(query) ?? false);
+    const matchesCat = category === 'all' || m.category === category;
+    return matchesSearch && matchesCat;
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 pb-32">
+      <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-800/80 pb-6">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
+            <Sparkles className="text-purple-400 animate-pulse" size={28} /> Agenda Inteligente
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <p className="text-slate-400 text-sm mt-1 font-medium">Seu ecossistema exclusivo para demandas.</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="flex gap-3 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2 rounded-2xl shadow-xl shadow-black/20">
+          <span className="px-4 py-2 text-xs font-bold rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5 shadow-inner">
+            <Briefcase size={14} /> Trabalho: {tasks.filter(t => t.category === 'trabalho').length + meetings.filter(m => m.category === 'trabalho').length}
+          </span>
+          <span className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 shadow-inner">
+            <User size={14} /> Pessoal: {tasks.filter(t => t.category === 'pessoal').length + meetings.filter(m => m.category === 'pessoal').length}
+          </span>
         </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section className="lg:col-span-1">
+          <PushNotification />
+          
+          {/* NOSSO NOVO PAINEL DE CONTROLE DE SOM E VIBRAÇÃO */}
+          <NotificationSettings />
+          
+          <DemandForm />
+        </section>
+
+        <section className="lg:col-span-2">
+          {/* Nova Barra de Filtros */}
+          <FilterBar />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
+                <CheckSquare className="text-emerald-400" size={20} /> Coisas a Fazer
+              </h3>
+              <div className="space-y-3">
+                {filteredTasks.length === 0 ? <p className="text-sm text-slate-500 font-medium text-center py-8">Nenhuma tarefa encontrada.</p> : filteredTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
+                <Calendar className="text-purple-400" size={20} /> Reuniões
+              </h3>
+              <div className="space-y-3">
+                {filteredMeetings.length === 0 ? <p className="text-sm text-slate-500 font-medium text-center py-8">Nenhuma reunião encontrada.</p> : filteredMeetings.map((meeting) => <MeetingCard key={meeting.id} meeting={meeting} />)}
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <nav className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-[400px] bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 px-6 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex justify-around items-center z-50">
+        <Link href="/" className="flex flex-col items-center gap-1 text-indigo-400 transition-transform">
+          <CheckSquare size={22} />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Demandas</span>
+        </Link>
+        <Link href="/calendar" className="flex flex-col items-center gap-1 text-slate-500 hover:text-purple-400 transition-transform">
+          <Calendar size={22} />
+          <span className="text-[9px] font-bold uppercase tracking-wider">Calendário</span>
+        </Link>
+      </nav>
     </div>
   );
 }
