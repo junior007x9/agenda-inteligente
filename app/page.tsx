@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { getDashboardData } from './actions';
 import { Briefcase, User, Calendar, CheckSquare, Sparkles } from 'lucide-react';
 import PushNotification from './components/PushNotification';
@@ -49,16 +50,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <section className="lg:col-span-1">
           <PushNotification />
-          
-          {/* NOSSO NOVO PAINEL DE CONTROLE DE SOM E VIBRAÇÃO */}
           <NotificationSettings />
-          
           <DemandForm />
         </section>
 
         <section className="lg:col-span-2">
-          {/* Nova Barra de Filtros */}
-          <FilterBar />
+          
+          {/* O SEGREDO DO SUCESSO AQUI: Suspense em volta da barra de filtros */}
+          <Suspense fallback={<div className="h-12 mb-6 bg-slate-800/50 rounded-xl animate-pulse"></div>}>
+            <FilterBar />
+          </Suspense>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
