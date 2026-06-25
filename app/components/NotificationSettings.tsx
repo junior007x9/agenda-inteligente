@@ -22,7 +22,6 @@ export default function NotificationSettings() {
   const [vibration, setVibration] = useState<keyof typeof VIBRATION_PATTERNS>('duplo');
   const [sound, setSound] = useState<keyof typeof SOUND_FREQUENCIES>('alerta');
 
-  // Carrega as preferências salvas ao abrir
   useEffect(() => {
     const savedVib = localStorage.getItem('pref_vibration') as keyof typeof VIBRATION_PATTERNS;
     const savedSound = localStorage.getItem('pref_sound') as keyof typeof SOUND_FREQUENCIES;
@@ -30,20 +29,30 @@ export default function NotificationSettings() {
     if (savedSound && SOUND_FREQUENCIES[savedSound]) setSound(savedSound);
   }, []);
 
-  // Salva e Testa as preferências
-  const handleSaveAndTest = () => {
+  const handleSaveAndTest = async () => {
     localStorage.setItem('pref_vibration', vibration);
     localStorage.setItem('pref_sound', sound);
 
-    // 1. Testa a Vibração (Se suportado pelo dispositivo)
+    // 1. Testa a Vibração (Desperta a API com um delay mínimo)
     if ('vibrate' in navigator) {
-      navigator.vibrate(VIBRATION_PATTERNS[vibration]);
+      navigator.vibrate(0); // Para qualquer vibração atual
+      setTimeout(() => {
+        navigator.vibrate(VIBRATION_PATTERNS[vibration]);
+      }, 50);
+    } else {
+      alert("Seu navegador atual bloqueia a vibração.");
     }
 
-    // 2. Testa o Som (Usando sintetizador nativo do navegador)
+    // 2. Testa o Som (Forçando o desbloqueio do Android)
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       const ctx = new AudioContext();
+      
+      // Essencial para navegadores mobile: acorda o contexto de áudio
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       
@@ -55,13 +64,14 @@ export default function NotificationSettings() {
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      // Volume aumentado de 0.1 para 0.8 para ficar bem audível no celular
+      gain.gain.setValueAtTime(0.8, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + soundProfile.duration);
       
       osc.start();
       osc.stop(ctx.currentTime + soundProfile.duration);
     } catch (e) {
-      console.error("Áudio não suportado no navegador", e);
+      console.error("Áudio bloqueado", e);
     }
   };
 
@@ -83,7 +93,6 @@ export default function NotificationSettings() {
       </h3>
 
       <div className="space-y-5">
-        {/* Escolha de Vibração */}
         <div>
           <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
             <Vibrate size={14} /> Padrão de Vibração
@@ -103,13 +112,11 @@ export default function NotificationSettings() {
               </button>
             ))}
           </div>
-          <p className="text-[9px] text-slate-500 mt-1 italic">*O iOS pode ignorar customizações de vibração em segundo plano.</p>
         </div>
 
-        {/* Escolha de Som */}
         <div>
           <label className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-            <Volume2 size={14} /> Toque de Alerta (App Aberto)
+            <Volume2 size={14} /> Toque de Alerta
           </label>
           <div className="grid grid-cols-3 gap-2">
             {Object.keys(SOUND_FREQUENCIES).map((key) => (
