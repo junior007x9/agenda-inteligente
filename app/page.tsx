@@ -48,9 +48,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             </span>
           </div>
           
-          {/* Botão de Perfil do Usuário */}
+          {/* Botão de Perfil do Usuário CORRIGIDO */}
           <div className="bg-slate-900/80 border border-slate-700 p-1.5 rounded-full shadow-lg">
-            <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
+            <UserButton appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
           </div>
         </div>
       </header>
