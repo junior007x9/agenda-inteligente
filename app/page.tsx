@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { getDashboardData } from './actions';
 import { Briefcase, User, Calendar, CheckSquare, Sparkles, Lock } from 'lucide-react';
-import { UserButton, SignInButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { auth } from '@clerk/nextjs/server';
 import PushNotification from './components/PushNotification';
 import NotificationSettings from './components/NotificationSettings';
@@ -13,10 +13,9 @@ import FilterBar from './components/FilterBar';
 import InstallPrompt from './components/InstallPrompt';
 
 export default async function DashboardPage({ searchParams }: { searchParams: { q?: string, cat?: string } }) {
-  // 1. O sistema verifica silenciosamente se você está logado
   const { userId } = await auth();
 
-  // 2. Se NÃO estiver logado: Mostra a Tela de Boas Vindas
+  // Se NÃO estiver logado: Mostra a Tela de Boas Vindas com Link Nativo
   if (!userId) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center bg-slate-950 p-6 text-center">
@@ -33,12 +32,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
         </div>
         
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-          {/* mode="redirect" faz uma viagem segura de ida e volta, impossível da Apple bloquear */}
-          <SignInButton mode="redirect" forceRedirectUrl="/">
-            <button className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-lg border border-indigo-400/20 cursor-pointer">
-              <Lock size={20} /> Acessar Minha Agenda
-            </button>
-          </SignInButton>
+          {/* AQUI ESTÁ A MÁGICA: Trocamos o script por uma âncora HTML pura que o iOS não bloqueia */}
+          <a href="/acessar" className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-lg border border-indigo-400/20">
+            <Lock size={20} /> Acessar Minha Agenda
+          </a>
           <p className="text-slate-600 text-xs mt-8 flex items-center justify-center gap-1 font-medium tracking-wide">
              Ambiente Seguro Autenticado
           </p>
@@ -47,7 +44,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
     );
   }
 
-  // 3. Se ESTIVER logado: Mostra a sua Agenda Normal
+  // Se ESTIVER logado: Mostra a sua Agenda Normal
   const { tasks, meetings } = await getDashboardData();
 
   const query = searchParams.q?.toLowerCase() || '';
