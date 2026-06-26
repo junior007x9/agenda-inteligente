@@ -1,4 +1,6 @@
 // app/sign-in/[[...sign-in]]/page.tsx
+'use client';
+
 import { SignInButton } from "@clerk/nextjs";
 import { Sparkles, Lock } from 'lucide-react';
 
@@ -18,9 +20,9 @@ export default function Page() {
       </div>
       
       <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
-        {/* Este botão redireciona para a página segura oficial do Clerk */}
-        <SignInButton forceRedirectUrl="/">
-          <button className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-lg border border-indigo-400/20">
+        {/* Adicionamos o mode="modal" para forçar a caixinha a flutuar na tela */}
+        <SignInButton mode="modal" fallbackRedirectUrl="/">
+          <button className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-lg border border-indigo-400/20 cursor-pointer">
             <Lock size={20} /> Acessar Minha Agenda
           </button>
         </SignInButton>
