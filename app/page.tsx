@@ -138,6 +138,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           <span className="text-[9px] font-bold uppercase tracking-wider">Calendário</span>
         </Link>
       </nav>
-    </div>
+    </div
   );
 }
