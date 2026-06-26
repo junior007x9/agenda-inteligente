@@ -2,16 +2,52 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { getDashboardData } from './actions';
-import { Briefcase, User, Calendar, CheckSquare, Sparkles } from 'lucide-react';
-import { UserButton } from "@clerk/nextjs";
+import { Briefcase, User, Calendar, CheckSquare, Sparkles, Lock } from 'lucide-react';
+import { UserButton, SignInButton } from "@clerk/nextjs";
+import { auth } from '@clerk/nextjs/server';
 import PushNotification from './components/PushNotification';
 import NotificationSettings from './components/NotificationSettings';
 import DemandForm from './components/DemandForm';
 import { TaskCard, MeetingCard } from './components/DemandCards';
 import FilterBar from './components/FilterBar';
-import InstallPrompt from './components/InstallPrompt'; // <-- NOVO IMPORT
+import InstallPrompt from './components/InstallPrompt';
 
 export default async function DashboardPage({ searchParams }: { searchParams: { q?: string, cat?: string } }) {
+  // 1. O sistema verifica silenciosamente se você está logado
+  const { userId } = await auth();
+
+  // 2. Se NÃO estiver logado: Mostra a Tela de Boas Vindas
+  if (!userId) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center bg-slate-950 p-6 text-center">
+        <div className="flex flex-col items-center gap-4 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="bg-slate-900 p-5 rounded-full border border-slate-800 shadow-2xl shadow-purple-500/20">
+            <Sparkles className="text-purple-400 animate-pulse" size={48} />
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Agenda Inteligente
+          </h1>
+          <p className="text-slate-400 font-medium max-w-xs mt-2 leading-relaxed">
+            Seu ecossistema exclusivo e seguro para gerenciamento de demandas.
+          </p>
+        </div>
+        
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
+          {/* mode="redirect" faz uma viagem segura de ida e volta, impossível da Apple bloquear */}
+          <SignInButton mode="redirect" forceRedirectUrl="/">
+            <button className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95 text-lg border border-indigo-400/20 cursor-pointer">
+              <Lock size={20} /> Acessar Minha Agenda
+            </button>
+          </SignInButton>
+          <p className="text-slate-600 text-xs mt-8 flex items-center justify-center gap-1 font-medium tracking-wide">
+             Ambiente Seguro Autenticado
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Se ESTIVER logado: Mostra a sua Agenda Normal
   const { tasks, meetings } = await getDashboardData();
 
   const query = searchParams.q?.toLowerCase() || '';
@@ -32,7 +68,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 pb-32 relative">
       
-      {/* NOSSO BANNER FLUTUANTE DE INSTALAÇÃO MÁGICA */}
       <InstallPrompt />
 
       <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-800/80 pb-6">

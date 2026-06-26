@@ -1,10 +1,11 @@
 // proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// 1. Libera o caminho para a nossa nova tela de entrada não gerar loop
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+// A página inicial "/" fica liberada para mostrar a tela de boas vindas
+const isPublicRoute = createRouteMatcher(["/", "/api(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Se a rota NÃO for pública (como a página do calendário), ele protege e manda pro login
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
