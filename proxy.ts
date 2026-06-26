@@ -1,13 +1,13 @@
 // proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// 1. Define que as páginas de Login e Cadastro são PÚBLICAS
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+// Define que todas as rotas do app estão protegidas
+const isProtectedRoute = createRouteMatcher(["(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // 2. Se a rota NÃO for pública, o sistema protege
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  if (isProtectedRoute(req)) {
+    // Se não estiver logado, o Clerk assume o controle e abre a tela própria dele
+    await auth.protect(); 
   }
 });
 
