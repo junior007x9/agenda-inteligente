@@ -9,6 +9,7 @@ import NotificationSettings from './components/NotificationSettings';
 import DemandForm from './components/DemandForm';
 import { TaskCard, MeetingCard } from './components/DemandCards';
 import FilterBar from './components/FilterBar';
+import InstallPrompt from './components/InstallPrompt'; // <-- NOVO IMPORT
 
 export default async function DashboardPage({ searchParams }: { searchParams: { q?: string, cat?: string } }) {
   const { tasks, meetings } = await getDashboardData();
@@ -29,7 +30,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 pb-32">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 font-sans p-4 md:p-8 pb-32 relative">
+      
+      {/* NOSSO BANNER FLUTUANTE DE INSTALAÇÃO MÁGICA */}
+      <InstallPrompt />
+
       <header className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-800/80 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
@@ -48,7 +53,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
             </span>
           </div>
           
-          {/* Botão de Perfil do Usuário CORRIGIDO */}
           <div className="bg-slate-900/80 border border-slate-700 p-1.5 rounded-full shadow-lg">
             <UserButton appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
           </div>
