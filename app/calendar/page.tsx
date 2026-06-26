@@ -2,11 +2,11 @@
 import Link from 'next/link';
 import { getDashboardData } from '../actions';
 import { Calendar as CalendarIcon, CheckSquare, ChevronLeft, ChevronRight } from 'lucide-react';
+import { UserButton } from "@clerk/nextjs";
 
 export default async function CalendarPage() {
   const { tasks, meetings } = await getDashboardData();
   
-  // Lógica do Calendário (Mês Atual)
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
@@ -17,7 +17,6 @@ export default async function CalendarPage() {
   const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-  // Gerar os slots do grid
   const days = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push({ empty: true, date: null });
@@ -32,20 +31,23 @@ export default async function CalendarPage() {
         <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-3">
           <CalendarIcon className="text-purple-400" size={32} /> Meu Mês
         </h1>
-        <div className="flex items-center justify-between gap-4 bg-slate-900/60 p-2 rounded-2xl border border-slate-700/50 shadow-inner">
-          <button className="p-2 text-slate-400 hover:text-white transition-colors"><ChevronLeft size={20}/></button>
-          <span className="font-bold text-sm uppercase tracking-wider">{monthNames[month]} {year}</span>
-          <button className="p-2 text-slate-400 hover:text-white transition-colors"><ChevronRight size={20}/></button>
+        
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 bg-slate-900/60 p-2 rounded-2xl border border-slate-700/50 shadow-inner">
+            <button className="p-2 text-slate-400 hover:text-white transition-colors"><ChevronLeft size={20}/></button>
+            <span className="font-bold text-sm uppercase tracking-wider">{monthNames[month]} {year}</span>
+            <button className="p-2 text-slate-400 hover:text-white transition-colors"><ChevronRight size={20}/></button>
+          </div>
+          
+          <div className="bg-slate-900/80 border border-slate-700 p-1.5 rounded-full shadow-lg">
+            <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
+          </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto">
-        {/* Nova Lógica: overflow-x-auto com barra de rolagem customizada */}
         <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-4 md:p-8 shadow-2xl overflow-x-auto">
-          {/* min-w-[700px] garante que as colunas não se espremam no celular */}
           <div className="min-w-[700px] lg:min-w-full">
-            
-            {/* Cabeçalho da Semana */}
             <div className="grid grid-cols-7 gap-2 mb-4">
               {weekDays.map(day => (
                 <div key={day} className="text-center text-[11px] font-extrabold uppercase tracking-wider text-slate-500 bg-slate-950/30 py-2 rounded-lg">
@@ -54,7 +56,6 @@ export default async function CalendarPage() {
               ))}
             </div>
             
-            {/* Grid de Dias */}
             <div className="grid grid-cols-7 gap-2 md:gap-3 auto-rows-fr">
               {days.map((slot, index) => {
                 if (slot.empty) return <div key={`empty-${index}`} className="bg-slate-950/20 rounded-2xl border border-transparent"></div>;

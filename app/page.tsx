@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { getDashboardData } from './actions';
 import { Briefcase, User, Calendar, CheckSquare, Sparkles } from 'lucide-react';
+import { UserButton } from "@clerk/nextjs";
 import PushNotification from './components/PushNotification';
 import NotificationSettings from './components/NotificationSettings';
 import DemandForm from './components/DemandForm';
@@ -12,7 +13,6 @@ import FilterBar from './components/FilterBar';
 export default async function DashboardPage({ searchParams }: { searchParams: { q?: string, cat?: string } }) {
   const { tasks, meetings } = await getDashboardData();
 
-  // Lógica de Filtragem Baseada na URL
   const query = searchParams.q?.toLowerCase() || '';
   const category = searchParams.cat || 'all';
 
@@ -37,13 +37,21 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
           </h1>
           <p className="text-slate-400 text-sm mt-1 font-medium">Seu ecossistema exclusivo para demandas.</p>
         </div>
-        <div className="flex gap-3 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2 rounded-2xl shadow-xl shadow-black/20">
-          <span className="px-4 py-2 text-xs font-bold rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5 shadow-inner">
-            <Briefcase size={14} /> Trabalho: {tasks.filter(t => t.category === 'trabalho').length + meetings.filter(m => m.category === 'trabalho').length}
-          </span>
-          <span className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 shadow-inner">
-            <User size={14} /> Pessoal: {tasks.filter(t => t.category === 'pessoal').length + meetings.filter(m => m.category === 'pessoal').length}
-          </span>
+        
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex gap-3 bg-slate-900/60 backdrop-blur-md border border-slate-700/50 p-2 rounded-2xl shadow-xl shadow-black/20">
+            <span className="px-4 py-2 text-xs font-bold rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5 shadow-inner">
+              <Briefcase size={14} /> Trabalho: {tasks.filter(t => t.category === 'trabalho').length + meetings.filter(m => m.category === 'trabalho').length}
+            </span>
+            <span className="px-4 py-2 text-xs font-bold rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 shadow-inner">
+              <User size={14} /> Pessoal: {tasks.filter(t => t.category === 'pessoal').length + meetings.filter(m => m.category === 'pessoal').length}
+            </span>
+          </div>
+          
+          {/* Botão de Perfil do Usuário */}
+          <div className="bg-slate-900/80 border border-slate-700 p-1.5 rounded-full shadow-lg">
+            <UserButton afterSignOutUrl="/" appearance={{ elements: { userButtonAvatarBox: "w-10 h-10" } }} />
+          </div>
         </div>
       </header>
 
@@ -55,8 +63,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
         </section>
 
         <section className="lg:col-span-2">
-          
-          {/* O SEGREDO DO SUCESSO AQUI: Suspense em volta da barra de filtros */}
           <Suspense fallback={<div className="h-12 mb-6 bg-slate-800/50 rounded-xl animate-pulse"></div>}>
             <FilterBar />
           </Suspense>
