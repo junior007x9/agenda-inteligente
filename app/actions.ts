@@ -8,7 +8,8 @@ import { eq, and } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 
 export async function getDashboardData() {
-  const { userId } = auth();
+  // CORREÇÃO: Adicionado o "await" antes do auth()
+  const { userId } = await auth();
   if (!userId) return { tasks: [], meetings: [] };
 
   try {
@@ -22,7 +23,7 @@ export async function getDashboardData() {
 }
 
 export async function createTaskAction(formData: FormData) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Acesso negado");
 
   const title = formData.get('title') as string;
@@ -58,7 +59,7 @@ export async function createTaskAction(formData: FormData) {
 }
 
 export async function createMeetingAction(formData: FormData) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Acesso negado");
 
   const title = formData.get('title') as string;
@@ -95,7 +96,7 @@ export async function createMeetingAction(formData: FormData) {
 }
 
 export async function deleteTaskAction(id: string) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return;
   await db.delete(tasks).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
   revalidatePath('/');
@@ -103,7 +104,7 @@ export async function deleteTaskAction(id: string) {
 }
 
 export async function deleteMeetingAction(id: string) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return;
   await db.delete(meetings).where(and(eq(meetings.id, id), eq(meetings.userId, userId)));
   revalidatePath('/');
@@ -111,7 +112,7 @@ export async function deleteMeetingAction(id: string) {
 }
 
 export async function toggleTaskStatusAction(id: string, currentStatus: string) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return;
   const newStatus = currentStatus === 'concluido' ? 'pendente' : 'concluido';
   await db.update(tasks).set({ status: newStatus }).where(and(eq(tasks.id, id), eq(tasks.userId, userId)));
@@ -120,7 +121,7 @@ export async function toggleTaskStatusAction(id: string, currentStatus: string) 
 }
 
 export async function updateTaskAction(id: string, formData: FormData) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return;
   
   const title = formData.get('title') as string;
@@ -142,7 +143,7 @@ export async function updateTaskAction(id: string, formData: FormData) {
 }
 
 export async function updateMeetingAction(id: string, formData: FormData) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) return;
 
   const title = formData.get('title') as string;
