@@ -1,13 +1,12 @@
 // proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Define que todas as rotas do app estão protegidas
-const isProtectedRoute = createRouteMatcher(["(.*)"]);
+// 1. Libera o caminho para a nossa nova tela de entrada não gerar loop
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    // Se não estiver logado, o Clerk assume o controle e abre a tela própria dele
-    await auth.protect(); 
+  if (!isPublicRoute(req)) {
+    await auth.protect();
   }
 });
 
