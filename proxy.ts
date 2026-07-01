@@ -1,13 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// 1. Libera a página inicial para mostrar a tela de boas-vindas
-const isPublicRoute = createRouteMatcher(["/", "/api(.*)"]);
+// Colocamos o "/acessar" e as rotas antigas na lista pública para NUNCA mais dar loop
+const isPublicRoute = createRouteMatcher([
+  "/", 
+  "/acessar", 
+  "/sign-in(.*)", 
+  "/sign-up(.*)", 
+  "/api(.*)"
+]);
 
-// CORREÇÃO: Adicionado o "async" aqui
 export default clerkMiddleware(async (auth, req) => {
-  // 2. Se tentar entrar em qualquer outra página (como a rota /acessar)
   if (!isPublicRoute(req)) {
-    // CORREÇÃO: Adicionado o "await" antes do auth.protect()
     await auth.protect();
   }
 });
