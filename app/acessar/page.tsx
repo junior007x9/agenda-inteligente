@@ -1,6 +1,14 @@
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-export default function Acessar() {
-  // Assim que o usuário volta do login, isso devolve ele para a tela principal
+export default async function Acessar() {
+  const { userId, redirectToSignIn } = await auth();
+  
+  // Se você NÃO estiver logado, o servidor gera uma passagem direta para a nuvem segura do Clerk
+  if (!userId) {
+    return redirectToSignIn();
+  }
+  
+  // Se você JÁ estiver logado e cair aqui sem querer, o sistema te joga de volta pra Dashboard
   redirect("/");
 }
